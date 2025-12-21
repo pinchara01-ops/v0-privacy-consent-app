@@ -3,6 +3,18 @@ import { validateApiKey } from "@/lib/auth"
 import { createOrUpdateConsent, getConsents, batchUpdateConsents } from "@/lib/consent-service"
 import type { APIResponse } from "@/lib/types"
 
+// CORS headers for browser extension
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+}
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const apiKey = request.headers.get("x-api-key")
@@ -53,7 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json<APIResponse>({ success: false, error: "Invalid request format" }, { status: 400 })
     }
 
-    return NextResponse.json<APIResponse>({ success: true, data: result }, { status: 200 })
+    return NextResponse.json<APIResponse>({ success: true, data: result }, { status: 200, headers: corsHeaders })
   } catch (error) {
     console.error("[v0] Consent API error:", error)
     return NextResponse.json<APIResponse>({ success: false, error: "Internal server error" }, { status: 500 })
@@ -82,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     const consents = await getConsents(org.id, userIdentifier)
 
-    return NextResponse.json<APIResponse>({ success: true, data: consents }, { status: 200 })
+    return NextResponse.json<APIResponse>({ success: true, data: consents }, { status: 200, headers: corsHeaders })
   } catch (error) {
     console.error("[v0] Get consent API error:", error)
     return NextResponse.json<APIResponse>({ success: false, error: "Internal server error" }, { status: 500 })

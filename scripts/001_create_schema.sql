@@ -2,6 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Create enum types
+-- Create enum types
 CREATE TYPE consent_type AS ENUM ('marketing', 'analytics', 'functional', 'personalization');
 CREATE TYPE consent_status AS ENUM ('granted', 'denied', 'pending');
 CREATE TYPE bot_verdict AS ENUM ('human', 'bot', 'suspicious', 'unknown');
