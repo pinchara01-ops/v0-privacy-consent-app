@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivacyD Reddit Mock | Research Dashboard</title>
+    <style>
+        :root {
+            --reddit-orange: #ff4500;
+            --reddit-blue: #0079d3;
+            --bg: #dae0e6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: #1c1c1c;
+        }
+
+        .nav {
+            background: white;
+            padding: 8px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            color: var(--reddit-orange);
+            font-weight: 800;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .search-bar {
+            background: #f6f7f8;
+            border: 1px solid #edeff1;
+            padding: 10px 20px;
+            border-radius: 20px;
+            width: 400px;
+            color: #757575;
+            font-size: 14px;
+        }
+
+        .main {
+            max-width: 1000px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 312px;
+            gap: 24px;
+        }
+
+        /* Create Post Area */
+        .create-post {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            background: #d7dfe2;
+            border-radius: 50%;
+        }
+
+        .create-input {
+            background: #f6f7f8;
+            border: 1px solid #edeff1;
+            border-radius: 4px;
+            flex-grow: 1;
+            padding: 10px;
+            cursor: pointer;
+            color: #757575;
+        }
+
+        /* Feed container */
+        .post {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            display: flex;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .post:hover {
+            border-color: #898989;
+        }
+
+        .vote-sidebar {
+            width: 40px;
+            background: #f8f9fa;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #1a1a1b;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .post-content {
+            padding: 8px 12px;
+            flex-grow: 1;
+        }
+
+        .post-header {
+            font-size: 12px;
+            color: #787c7e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .post-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .post-body {
+            font-size: 14px;
+            line-height: 21px;
+            color: #1a1a1b;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #878a8c;
+        }
+
+        /* Privacy Shield Styles */
+        .restricted-badge {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            border: 1px solid #f87171;
+        }
+
+        /* Sidebar */
+        .sidebar-box {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #7c7c7c;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .community-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .comm-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0079d3;
+        }
+
+        /* Create Modal */
+        #create-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(28, 28, 28, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 600px;
+            padding: 24px;
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #edeff1;
+            padding-bottom: 12px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            border: 1px solid #edeff1;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn-post {
+            background: var(--reddit-blue);
+            color: white;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            float: right;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--reddit-blue);
+            border: 1px solid var(--reddit-blue);
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            float: right;
+            margin-right: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="logo">MockReddit 🛡️</div>
+        <div class="search-bar">Search for research data...</div>
+        <div style="display: flex; gap: 12px;">
+            <button
+                style="background:transparent; border:1px solid #0079d3; color:#0079d3; padding:6px 20px; border-radius:20px; font-weight:700;">Log
+                In</button>
+            <button
+                style="background:#0079d3; border:none; color:white; padding:6px 20px; border-radius:20px; font-weight:700;">Sign
+                Up</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="feed-column">
+            <div class="create-post" onclick="document.getElementById('create-modal').style.display='flex'">
+                <div class="avatar"></div>
+                <div class="create-input">Create a new post... (Extension UI will appear here)</div>
+            </div>
+
+            <div id="posts-container">
+                <!-- Post 1: Public -->
+                <shreddit-post id="post_1" class="post">
+                    <div class="vote-sidebar">⬆️<br>242<br>⬇️</div>
+                    <div class="post-content">
+                        <div class="post-header">r/MachineLearning • Posted by u/science_guy • 5h ago</div>
+                        <div class="post-title">Comparing Transformer Architectures</div>
+                        <div class="post-body">This is a public research discussion. It is open for scraping by all bots
+                            as indicated by the owner. No privacy shield will trigger here.</div>
+                        <div class="post-footer">💬 45 Comments | 🛡️ Consent: Public</div>
+                    </div>
+                </shreddit-post>
+
+                <!-- Post 2: Restricted -->
+                <shreddit-post id="post_restricted" class="post">
+                    <div class="vote-sidebar">⬆️<br>1.2k<br>⬇️</div>
+                    <div class="post-content">
+                        <div class="post-header">r/Privacy • Posted by u/anon_researcher • 2h ago <span
+                                class="restricted-badge">SHIELD ENABLED</span></div>
+                        <div class="post-title">Proprietary Training Dataset [DO NOT SCRAPE]</div>
+                        <div class="post-body">This content contains sensitive raw data points from our latest privacy
+                            trial. The owner has explicitly set the AI Scraping consent for THIS post to DENIED.
+                            Automated browsers will see a blur.</div>
+                        <div class="post-footer">💬 120 Comments | 🛡️ Consent: AI-Restricted</div>
+                    </div>
+                </shreddit-post>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-box">
+                <div class="sidebar-title">About Community</div>
+                <div style="font-size: 14px; margin-bottom: 12px;">Research playground for the Privacy Consent
+                    Management System. Test your extension logic here.</div>
+                <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px;">
+                    <div>2.4m<br><span style="font-size: 12px; font-weight: 400;">Members</span></div>
+                    <div>1.1k<br><span style="font-size: 12px; font-weight: 400;">Online</span></div>
+                </div>
+            </div>
+
+            <div class="sidebar-box" style="border: 2px dashed #ff4500; background: #fff5f2;">
+                <div class="sidebar-title" style="color: #ff4500;">🧪 AI Research Honeypot</div>
+                <div style="font-size: 11px; margin-bottom: 8px; color: #666;">This area is invisible to humans but
+                    monitored by the Privacy Shield. </div>
+                <div id="honeypot-trap"
+                    style="height: 40px; background: repeating-linear-gradient(45deg, #fff, #fff 10px, #fff5f2 10px, #fff5f2 20px); border-radius: 4px; border: 1px solid #ff4500; cursor: crosshair; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #ff4500;">
+                    BOT BAIT AREA [SCAN HERE]
+                </div>
+            </div>
+
+            <div class="sidebar-box">
+                <div class="sidebar-title">Top Communities</div>
+                <div class="community-card">
+                    <div class="comm-img" style="background:#ff4500;"></div> r/Privacy
+                </div>
+                <div class="community-card">
+                    <div class="comm-img" style="background:#0079d3;"></div> r/CyberSecurity
+                </div>
+                <div class="community-card">
+                    <div class="comm-img" style="background:#46d160;"></div> r/Technology
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Creating Post -->
+    <div id="create-modal">
+        <div class="modal-content">
+            <div class="modal-header">Create Post in r/PrivacyMock</div>
+            <input type="text" id="post-title-in" placeholder="Title">
+            <textarea id="post-body-in" rows="5" placeholder="Text (optional)"></textarea>
+            <div style="margin-top: 10px; overflow: hidden;">
+                <button class="btn-post" onclick="addNewPost()">Post</button>
+                <button class="btn-cancel"
+                    onclick="document.getElementById('create-modal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const postsContainer = document.getElementById('posts-container');
+
+        function addNewPost() {
+            const title = document.getElementById('post-title-in').value;
+            const body = document.getElementById('post-body-in').value;
+            if (!title) return;
+
+            const id = 'post_' + Date.now();
+            const newPost = document.createElement('shreddit-post');
+            newPost.id = id;
+            newPost.className = 'post';
+            newPost.innerHTML = `
+                <div class="vote-sidebar">⬆️<br>1<br>⬇️</div>
+                <div class="post-content">
+                    <div class="post-header">r/PrivacyMock • Posted by u/Me • Just now</div>
+                    <div class="post-title">${title}</div>
+                    <div class="post-body">${body}</div>
+                    <div class="post-footer">💬 0 Comments | 🛡️ Consent: Check Badge Below</div>
+                </div>
+            `;
+
+            postsContainer.prepend(newPost);
+            document.getElementById('create-modal').style.display = 'none';
+            document.getElementById('post-title-in').value = '';
+            document.getElementById('post-body-in').value = '';
+
+            console.log('New post added with ID:', id);
+            // This will trigger the extension's MutationObserver
+        }
+    </script>
+</body>
+
+</html>

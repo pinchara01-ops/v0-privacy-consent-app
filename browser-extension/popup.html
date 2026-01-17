@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       width: 400px;
       min-height: 500px;
@@ -18,13 +19,13 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-    
+
     .header {
       padding: 24px;
       text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
+
     .header h1 {
       font-size: 20px;
       margin-bottom: 8px;
@@ -33,24 +34,24 @@
       justify-content: center;
       gap: 8px;
     }
-    
+
     .header p {
       font-size: 13px;
       opacity: 0.9;
     }
-    
+
     .content {
       padding: 20px;
     }
-    
+
     .section {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 16px;
       backdrop-filter: blur(10px);
     }
-    
+
     .section h2 {
       font-size: 16px;
       margin-bottom: 12px;
@@ -58,53 +59,53 @@
       align-items: center;
       gap: 8px;
     }
-    
+
     .consent-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 12px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
       margin-bottom: 8px;
       transition: background 0.2s;
     }
-    
+
     .consent-item:hover {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
-    
+
     .consent-item:last-child {
       margin-bottom: 0;
     }
-    
+
     .consent-label {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    
+
     .consent-label strong {
       font-size: 14px;
     }
-    
+
     .consent-label small {
       font-size: 12px;
       opacity: 0.8;
     }
-    
+
     .toggle-switch {
       position: relative;
       width: 48px;
       height: 24px;
     }
-    
+
     .toggle-switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
-    
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -112,11 +113,11 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(255,255,255,0.3);
+      background-color: rgba(255, 255, 255, 0.3);
       transition: 0.3s;
       border-radius: 24px;
     }
-    
+
     .slider:before {
       position: absolute;
       content: "";
@@ -128,39 +129,39 @@
       transition: 0.3s;
       border-radius: 50%;
     }
-    
-    input:checked + .slider {
+
+    input:checked+.slider {
       background-color: #4ade80;
     }
-    
-    input:checked + .slider:before {
+
+    input:checked+.slider:before {
       transform: translateX(24px);
     }
-    
+
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-    
+
     .stat-card {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 12px;
       border-radius: 8px;
       text-align: center;
     }
-    
+
     .stat-card .number {
       font-size: 24px;
       font-weight: 700;
       margin-bottom: 4px;
     }
-    
+
     .stat-card .label {
       font-size: 12px;
       opacity: 0.8;
     }
-    
+
     .button {
       width: 100%;
       padding: 12px;
@@ -173,33 +174,34 @@
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    
+
     .button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    
+
     .button.secondary {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
       margin-top: 8px;
     }
-    
+
     .footer {
       padding: 16px 20px;
       text-align: center;
       font-size: 12px;
       opacity: 0.8;
-      border-top: 1px solid rgba(255,255,255,0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
+
 <body>
   <div class="header">
     <h1>🔒 Privacy Consent Manager</h1>
     <p>Control your privacy across all websites</p>
   </div>
-  
+
   <div class="content">
     <div class="section">
       <h2>📊 Statistics</h2>
@@ -214,10 +216,10 @@
         </div>
       </div>
     </div>
-    
+
     <div class="section">
       <h2>⚙️ Consent Preferences</h2>
-      
+
       <div class="consent-item">
         <div class="consent-label">
           <strong>Marketing</strong>
@@ -228,7 +230,7 @@
           <span class="slider"></span>
         </label>
       </div>
-      
+
       <div class="consent-item">
         <div class="consent-label">
           <strong>Analytics</strong>
@@ -239,7 +241,7 @@
           <span class="slider"></span>
         </label>
       </div>
-      
+
       <div class="consent-item">
         <div class="consent-label">
           <strong>Functional</strong>
@@ -250,7 +252,7 @@
           <span class="slider"></span>
         </label>
       </div>
-      
+
       <div class="consent-item">
         <div class="consent-label">
           <strong>Personalization</strong>
@@ -262,18 +264,45 @@
         </label>
       </div>
     </div>
-    
+
+    <div class="section">
+      <h2>🤖 Bot Detection</h2>
+
+      <div class="consent-item">
+        <div class="consent-label">
+          <strong>Allow AI/Bot Scraping</strong>
+          <small>Enable to allow bots to access content, disable to block automated scraping</small>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="allow-bot-scraping">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="bot-status"
+        style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 13px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span id="bot-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #4ade80;"></span>
+          <strong id="bot-status-text">Protection Active</strong>
+        </div>
+        <div id="bot-status-detail" style="opacity: 0.8; font-size: 12px;">
+          Bot detection is running. Bots will be blocked.
+        </div>
+      </div>
+    </div>
+
     <div class="section">
       <h2>🛡️ Protection</h2>
       <button class="button" id="export-data">Export My Data (GDPR)</button>
       <button class="button secondary" id="delete-data">Delete All Data</button>
     </div>
   </div>
-  
+
   <div class="footer">
     Powered by Privacy Consent Management System
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
+
 </html>

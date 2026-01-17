@@ -7,10 +7,12 @@ A powerful browser extension that manages privacy consents across all websites w
 ✅ **Universal Consent Management** - Set your privacy preferences once, apply everywhere
 ✅ **Auto-Hide Cookie Banners** - Automatically hides annoying consent popups
 ✅ **Tracker Blocking** - Blocks marketing and analytics trackers based on your consent
-✅ **Bot Detection** - Tracks user behavior to detect and prevent bot activity
+✅ **🆕 Advanced Bot Detection** - Powered by Fingerprint's BotD library to detect and block automated scrapers
+✅ **User-Controlled Bot Access** - Toggle to allow/block AI bots and scrapers from accessing your content
 ✅ **GDPR Compliant** - Export and delete your data anytime
 ✅ **Beautiful UI** - Modern, gradient-based interface
 ✅ **Cross-Platform** - Works on Reddit, Twitter, Facebook, and all websites
+
 
 ## Installation
 
@@ -54,11 +56,28 @@ A powerful browser extension that manages privacy consents across all websites w
 - When you visit any website, the extension applies your preferences
 - Native cookie banners are automatically hidden
 
-### 2. Bot Detection
-- The extension tracks mouse movements, clicks, and keypresses
-- After 5 seconds, it sends this data to the backend for analysis
-- The backend uses behavioral analysis to determine if you're human or bot
-- Results are stored with confidence scores
+### 2. Bot Detection (Powered by BotD)
+
+**User Control:**
+- Users can toggle "Allow AI/Bot Scraping" in the extension popup
+- Default: **OFF** (bots are blocked to protect user privacy)
+- When enabled: Bots can access content freely
+- When disabled: Advanced bot detection activates
+
+**Detection Process:**
+- Uses [Fingerprint's BotD library](https://github.com/fingerprintjs/BotD) for industry-leading bot detection
+- Detects automation frameworks: Selenium, Puppeteer, Playwright, Headless Chrome, PhantomJS
+- Runs 100% client-side - no server required
+- Instant detection on page load
+
+**Bot Blocking:**
+- Detected bots see a professional blocking overlay
+- Human users experience no interruption
+- All bot events are logged and sent to your backend for analytics
+- Fallback detection if BotD library fails to load
+
+**📖 For detailed bot detection documentation, see [BOT_DETECTION.md](./BOT_DETECTION.md)**
+
 
 ### 3. Tracker Blocking
 - Based on your consent preferences, the extension blocks:
@@ -122,8 +141,10 @@ Edit `background.js` - add patterns to the `chrome.webRequest.onBeforeRequest` l
 The extension tracks:
 - **Sites Protected**: Number of unique domains visited
 - **Trackers Blocked**: Total number of blocked tracking requests
+- **Bots Blocked**: Number of automated bots detected and blocked (NEW)
 
 View these in the extension popup.
+
 
 ## Troubleshooting
 

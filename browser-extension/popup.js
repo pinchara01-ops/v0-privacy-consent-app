@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadPreferences() {
-    chrome.storage.local.get(['consentPreferences'], (result) => {
+    chrome.storage.local.get(['consentPreferences', 'allowBotScraping'], (result) => {
         if (result.consentPreferences) {
             document.getElementById('consent-marketing').checked =
                 result.consentPreferences.marketing === 'granted';
@@ -20,6 +20,11 @@ function loadPreferences() {
             document.getElementById('consent-personalization').checked =
                 result.consentPreferences.personalization === 'granted';
         }
+
+        // Load bot detection preference (default: false - bots are blocked)
+        const allowBotScraping = result.allowBotScraping !== undefined ? result.allowBotScraping : false;
+        document.getElementById('allow-bot-scraping').checked = allowBotScraping;
+        updateBotStatus(allowBotScraping);
     });
 }
 
@@ -36,6 +41,20 @@ function setupEventListeners() {
     ['marketing', 'analytics', 'personalization'].forEach(type => {
         document.getElementById(`consent-${type}`).addEventListener('change', (e) => {
             updateConsent(type, e.target.checked ? 'granted' : 'denied');
+        });
+    });
+
+    // Bot detection toggle
+    document.getElementById('allow-bot-scraping').addEventListener('change', (e) => {
+        const allowBotScraping = e.target.checked;
+        chrome.storage.local.set({ allowBotScraping });
+        updateBotStatus(allowBotScraping);
+        showNotification(allowBotScraping ? '🤖 Bot scraping allowed' : '🛡️ Bot scraping blocked');
+
+        // Notify all tabs about the change
+        chrome.runtime.sendMessage({
+            action: 'updateBotDetection',
+            allowBotScraping
         });
     });
 
@@ -191,3 +210,20 @@ function showNotification(message) {
         setTimeout(() => notification.remove(), 300);
     }, 2000);
 }
+
+function updateBotStatus(allowBotScraping) {
+    const indicator = document.getElementById('bot-indicator');
+    const statusText = document.getElementById('bot-status-text');
+    const statusDetail = document.getElementById('bot-status-detail');
+
+    if (allowBotScraping) {
+        indicator.style.background = '#fbbf24'; // Yellow/amber
+        statusText.textContent = 'Bots Allowed';
+        statusDetail.textContent = 'AI and bots can scrape content from this page.';
+    } else {
+        indicator.style.background = '#4ade80'; // Green
+        statusText.textContent = 'Protection Active';
+        statusDetail.textContent = 'Bot detection is running. Bots will be blocked.';
+    }
+}
+

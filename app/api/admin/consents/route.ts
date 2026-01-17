@@ -5,9 +5,11 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const apiKey = request.headers.get('x-api-key')
+    const { searchParams } = new URL(request.url);
+    const apiKey = request.headers.get('x-api-key') || searchParams.get('api_key');
+    const validKey = 'demo_api_key_12345678901234567890123456789012';
 
-    if (!apiKey || apiKey !== 'demo_api_key_12345678901234567890123456789012') {
+    if (!apiKey || apiKey !== validKey) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

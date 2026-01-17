@@ -3,23 +3,29 @@ const API_ENDPOINT = 'http://localhost:3000/api';
 const API_KEY = 'demo_api_key_12345678901234567890123456789012';
 
 // Initialize extension
-chrome.runtime.onInstalled.addListener(() => {
-    console.log('Privacy Consent Manager installed');
-
-    // Set default settings
+function initializeSettings() {
+    console.log('🔄 Refreshing Extension Settings...');
     chrome.storage.local.set({
         apiEndpoint: API_ENDPOINT,
         apiKey: API_KEY,
         autoDetectBots: true,
         blockTrackers: true,
-        consentPreferences: {
-            marketing: 'denied',
-            analytics: 'denied',
-            functional: 'granted',
-            personalization: 'denied'
-        }
+        allowBotScraping: false
+    }, () => {
+        console.log('✅ Settings synced with:', API_ENDPOINT);
     });
-});
+}
+
+chrome.runtime.onInstalled.addListener(initializeSettings);
+chrome.runtime.onStartup.addListener(initializeSettings);
+
+// Heartbeat to server to verify connection
+setTimeout(() => {
+    console.log('💓 Sending Heartbeat to:', API_ENDPOINT);
+    fetch(`${API_ENDPOINT}/admin/bot-audit?api_key=${API_KEY}`)
+        .then(() => console.log('✅ Connection to Backend verified'))
+        .catch(err => console.error('❌ Connection to Backend failed:', err));
+}, 1000);
 
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -41,6 +47,83 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         detectBotSession(request.sessionId, request.events)
             .then(response => sendResponse({ success: true, data: response }))
             .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (request.action === 'botDetectionResult') {
+        console.log('🔍 Bot Detection Result:', request.result);
+
+        // Store bot detection result
+        chrome.storage.local.get(['botDetectionLog'], (result) => {
+            const log = result.botDetectionLog || [];
+            log.push({
+                result: request.result,
+                timestamp: request.timestamp,
+                url: request.url
+            });
+
+            // Keep only last 100 entries
+            if (log.length > 100) {
+                log.shift();
+            }
+
+            chrome.storage.local.set({ botDetectionLog: log });
+        });
+
+        // Send to server for logging (including human/false results for audit)
+        console.log(`📡 Sending detection result to server: Bot=${request.result.bot}, Kind=${request.result.botKind}`);
+        sendBotDetectionToServer(request);
+
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (request.action === 'botBlocked') {
+        console.warn('🚫 Bot Blocked:', request.result);
+
+        // Increment blocked bots counter
+        chrome.storage.local.get(['stats'], (result) => {
+            const stats = result.stats || { sitesProtected: 0, trackersBlocked: 0, botsBlocked: 0 };
+            stats.botsBlocked = (stats.botsBlocked || 0) + 1;
+            chrome.storage.local.set({ stats });
+        });
+
+        // Send to server
+        console.log('🛡️ [FORENSIC AUDIT] Bot detected with the following telemetry:');
+        console.table({
+            bot_kind: data.result.botKind,
+            probability_score: data.result.score,
+            mouse_traces: data.result.mouse_trace.length,
+            network_probes: data.result.network_logs.length
+        });
+
+        sendBotBlockedToServer(request);
+
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (request.action === 'updateBotDetection') {
+        // Broadcast to all tabs
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'updateBotDetection',
+                    allowBotScraping: request.allowBotScraping
+                }).catch(() => {
+                    // Ignore errors for tabs that don't have the content script
+                });
+            });
+        });
+        return true;
+    }
+
+    if (request.action === 'checkPostConsents') {
+        const url = `${API_ENDPOINT}/consent/check?post_ids=${request.postIds.join(',')}`;
+        fetch(url)
+            .then(res => res.json())
+            .then(data => sendResponse(data))
+            .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
 });
@@ -146,3 +229,59 @@ chrome.webRequest.onBeforeRequest.addListener(
     { urls: ["<all_urls>"] },
     ["blocking"]
 );
+
+// Send bot detection result to server
+async function sendBotDetectionToServer(data) {
+    try {
+        const settings = await chrome.storage.local.get(['apiEndpoint', 'apiKey']);
+
+        await fetch(`${settings.apiEndpoint}/bot-detection/result`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': settings.apiKey
+            },
+            body: JSON.stringify({
+                bot_detected: data.result.bot,
+                bot_kind: data.result.botKind,
+                url: data.url,
+                timestamp: data.timestamp,
+                user_agent: navigator.userAgent
+            })
+        });
+    } catch (error) {
+        console.error('Failed to send bot detection to server:', error);
+    }
+}
+
+// Send bot blocked event to server
+async function sendBotBlockedToServer(data) {
+    try {
+        const settings = await chrome.storage.local.get(['apiEndpoint', 'apiKey']);
+
+        const res = await fetch(`${settings.apiEndpoint}/bot-detection/blocked`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': settings.apiKey
+            },
+            body: JSON.stringify({
+                bot_kind: data.result.botKind,
+                url: data.url,
+                timestamp: data.timestamp,
+                blocked: true,
+                metadata: {
+                    bot_score: data.result.score,
+                    mouse_trace: data.result.mouse_trace,
+                    network_timestamps: data.result.network_logs,
+                    is_behavioral: true
+                }
+            })
+        });
+
+        const resText = await res.text();
+        console.log('📡 Server Response:', res.status, resText);
+    } catch (error) {
+        console.error('❌ FATAL: Failed to send bot blocked to server:', error);
+    }
+}
