@@ -14,12 +14,18 @@
     }
 
     // Track user behavior for bot detection
-    document.addEventListener('mousemove', () => {
+    // Track user behavior for bot detection
+    document.addEventListener('mousemove', (e) => {
         mouseMovements++;
-        if (mouseMovements % 10 === 0) {
+        // Capture specific points for forensic analysis (throttled)
+        if (mouseMovements % 5 === 0) {
             events.push({
                 type: 'mousemove',
-                data: { count: mouseMovements, timestamp: Date.now() }
+                data: {
+                    x: e.clientX,
+                    y: e.clientY,
+                    timestamp: Date.now()
+                }
             });
         }
     });

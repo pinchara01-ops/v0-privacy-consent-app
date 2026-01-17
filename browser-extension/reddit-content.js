@@ -43,14 +43,31 @@
   }
 
   // 2. The Blocking Logic
-  async function applyFirewall() {
+  // 2. The Blocking Logic
+  async function applyFirewall(force = false) {
     chrome.storage.local.get(['isBotDetected'], async (res) => {
-      if (!res.isBotDetected) return;
+      // If triggered by event (force) or stored state says bot is here
+      if (!res.isBotDetected && !force) return;
 
       const posts = document.querySelectorAll('shreddit-post, [data-testid="post-container"], div[id^="t3_"]');
-      const lastId = localStorage.getItem('last_protected_post');
 
+      // DEMO MODE: If on localhost, blur immediately efficiently
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log("🔥 DEMO MODE: Blurring content due to bot signal");
+        posts.forEach(post => {
+          post.style.transition = 'filter 0.5s ease';
+          post.style.filter = 'blur(12px)';
+          post.style.pointerEvents = 'none';
+          post.setAttribute('data-blurred', 'true');
+        });
+        return;
+      }
+
+      const lastId = localStorage.getItem('last_protected_post');
       if (!lastId) return;
+
+      // Calculate post IDs for real check
+      const postIds = Array.from(posts).map(p => p.getAttribute('id') || p.getAttribute('data-post-id')).filter(Boolean);
 
       // Use background script to fetch to avoid CORS issues
       chrome.runtime.sendMessage({
@@ -71,11 +88,15 @@
   }
 
   // Monitor for Bot Message
-  window.addEventListener('privacy-bot-detected', () => applyFirewall());
+  window.addEventListener('privacy-bot-detected', () => {
+    console.log("⚡ Received Bot Signal! Applying Firewall...");
+    applyFirewall(true);
+  });
 
   setInterval(() => {
     injectBadge();
-    applyFirewall();
+    // Periodically check local storage state too
+    applyFirewall(false);
   }, 2000);
 
 })();

@@ -1,5 +1,6 @@
 import { sql } from "./db"
 import { createAuditLog } from "./auth"
+import { analyzeWithHuggingFace } from "./hf-integration"
 import type { BotDetectionSession, BotDetectionEvent, BotVerdict } from "./types"
 
 interface BotSignals {
@@ -13,6 +14,10 @@ interface BotSignals {
   behavior_score?: number
   fingerprint_score?: number
   ip_reputation_score?: number
+  // AI Model Integration
+  botd_score?: number
+  ai_model_used?: boolean
+  ai_prediction?: string
 }
 
 export async function createBotSession(
@@ -204,7 +209,47 @@ export async function analyzeBotSession(organizationId: string, sessionId: strin
     const existingSignals = session.signals || {}
     const mergedSignals = { ...existingSignals, ...signals }
 
-    const { verdict, confidence } = await calculateBotScore(mergedSignals)
+    // 🤖 AI MODEL INTEGRATION
+    // Prepare forensic data for Hugging Face Model
+    const forensicPayload = {
+      mouse_trace: events
+        .filter((e: any) => e.event_type === "mousemove" && e.event_data?.x !== undefined)
+        .map((e: any) => ({
+          x: Number(e.event_data.x),
+          y: Number(e.event_data.y),
+          t: Number(e.event_data.timestamp || new Date(e.timestamp).getTime())
+        })),
+      network_timestamps: events.map((e: any) => new Date(e.timestamp).getTime()),
+      botd_score: mergedSignals.botd_score || 0.1
+    }
+
+    let aiVerdict: BotVerdict | null = null;
+    let aiConfidence = 0;
+
+    // Only call model if we have sufficient data
+    if (forensicPayload.mouse_trace.length > 5) {
+      const hfResult = await analyzeWithHuggingFace(forensicPayload);
+      if (hfResult) {
+        console.log(`🤖 Model Prediction: ${hfResult.label} (${hfResult.confidence})`);
+        if (hfResult.is_bot) {
+          aiVerdict = "bot";
+          aiConfidence = hfResult.confidence;
+        } else if (hfResult.confidence > 0.8) {
+          aiVerdict = "human";
+          aiConfidence = hfResult.confidence;
+        }
+      }
+    }
+
+    let { verdict, confidence } = await calculateBotScore(mergedSignals)
+
+    // Override with AI verdict if confidence is high
+    if (aiVerdict && aiConfidence > confidence) {
+      verdict = aiVerdict;
+      confidence = aiConfidence;
+      mergedSignals.ai_model_used = true;
+      mergedSignals.ai_prediction = aiVerdict;
+    }
 
     // Update session with verdict
     const updatedSession = await sql`
