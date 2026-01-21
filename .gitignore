@@ -25,3 +25,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# browser profiles and sessions
+/tmp/reddit-session/
+/tmp/bot-profile*/
+
+# documentation files (exclude all .md files)
+*.md
+!README.md
